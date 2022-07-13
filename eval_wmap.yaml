@@ -1,0 +1,20 @@
+output: chains/eval_wmap
+
+theory:
+  camb:
+
+sampler:
+  evaluate:
+
+likelihood:
+  wmaplike.WMAPLike:
+    stop_at_error: True
+
+params:
+  ombh2: 2.27e-2
+  omch2: 0.108
+  H0: 72.4
+  tau: 0.089
+  ns: 0.961
+  As: 2.41e-9
+  pivot_scalar: 0.02

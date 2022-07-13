@@ -1,0 +1,1 @@
+from .wmap import WMAPLike

@@ -1,0 +1,73 @@
+# A cobaya likelihood for the WMAP DR5 data release.
+# See Dunkley et al. (2008) for the full description of the methodology.
+# Authors: Hidde Jense.
+
+data_folder: "WMAP/dr5/wmap_likelihood_v5/data/"
+path: null
+
+# Some preset filenames
+gibbs_sigma_filename: "lowlT/gibbs/sigmaEllsHkeChu_test16_ilc_9yr_5deg_r5_2uK_corrected_kq85y9_June_r5_all.fits"
+gibbs_cl_filename: "lowlT/gibbs/test_cls.dat"
+
+tt_filename: "highl/wmap_likelihood_inputs_tt.p4v6.wmap9.kq85.cinv_v3.dat"
+te_filename: "highl/wmap_likelihood_inputs_te.p5_final.dat"
+tb_filename: "highl/wmap_likelihood_inputs_tb.p5_final.dat"
+ttoff_filename: "highl/wmap_likelihood_inputs_tt_offdiag.p4v4.wmap9.kq85.cinv_v3.dat"
+teoff_filename: "highl/wmap_likelihood_inputs_te_offdiag.p5_final.dat"
+
+ifn_ptsrc_mode: "highl/wmap_likelihood_inputs_ptsrc.p5_final.dat"
+ifn_beam_modes: "highl/top_ten_modes.beam_covariance_VW_combined.dat"
+ifn_fiducial_cltt: "test_cls_v4.dat"
+
+# Likelihood settings
+ttmin: 2
+ttmax: 1200
+temin: 2
+temax: 800
+
+lowl_max: 32
+gibbs_ell_max: 100
+
+# Whether to use the TT gibbs/pixel likelihood.
+use_lowl_TT: True
+# Whether to use the TE EE BB pixel likelihood.
+use_lowl_pol: False
+# Whether to use the TB EB low l likelihood.
+use_lowl_TBEB: False
+# Whether to use the high-l MASTER TT likelihood.
+use_highl_TT: True
+# Whether to use the high-l MASTER TE likelihood.
+use_highl_TE: True
+# Whether to use the high-l MASTER TB likelihood.
+use_highl_TB: False
+# Whether to include beam/point source errors.
+use_highl_TT_beam_ptsrc: True
+
+# Whether or not to use the gibbs sampling method for lowl_TT component.
+use_gibbs: True
+
+# Settings for the gibbs sampling component.
+gibbs_first_iteration: 10
+gibbs_last_iteration: 120000
+gibbs_skip: 2
+gibbs_ell_max: 32
+
+# Settings for the beam/ptsrc correction component.
+beam_diagonal_sigma: True
+beam_gaussian_likelihood: True
+beam_fixed_fiducial_spectrum: False
+beam_include_beam_modes: True
+beam_include_ptsrc_mode: True
+n_beam_modes: 9
+ptsrc_err: 0.1
+
+# Settings for the TE/EE/BB pixel likelihood
+TEEEBB_filename_0: "masked_ee_ninvplninv_qu_r3_corrected_9yr.KaQV.fits"
+TEEEBB_filename_1: "masked_bb_ninvplninv_qu_r3_corrected_9yr.KaQV.fits"
+TEEEBB_filename_2: "masked_ninv_qu_r3_corrected_9yr.KaQV.fits"
+TEEEBB_filename_3: "wt_r3_9yr.KaQV.map_q"
+TEEEBB_filename_4: "wt_r3_9yr.KaQV.map_u"
+TEEEBB_filename_5: "lowlP/alm_tt_fs_r9_ilc_nopixwin_9yr.dat"
+TEEEBB_filename_6: "masked_ninvy_e_qu_r3_corrected_9yr.KaQV.fits"
+TEEEBB_filename_9: "healpix_data/pixel_window_n0008.txt"
+TEEEBB_maskfile: "lowlP/mask_r3_p06_jarosik.fits"
