@@ -106,7 +106,6 @@ class WMAPLike(InstallableLikelihood):
 		
 		gibbs_file.close()
 		
-		
 		self.log.debug(f"Done.")
 		
 		cl_filename = os.path.normpath(os.path.join(self.data_folder, self.gibbs_cl_filename))
@@ -369,7 +368,7 @@ class WMAPLike(InstallableLikelihood):
 		raise NotImplementedError("TE/TB/EE/BB/EB low-l likelihood is not yet implemented. Set .use_lowl_TBEB = False. or .use_lowl_pol = False. to avoid this error.")
 	
 	def compute_largest_term(self, cl_tt):
-		self.log.info("First evaluation: Calculating largest term...")
+		self.log.debug("First evaluation: Calculating largest term...")
 		
 		ls = np.arange(self.lmin, self.lmax+1)
 		self.sigmas = self.sigmas[ls,...]
@@ -380,7 +379,7 @@ class WMAPLike(InstallableLikelihood):
 		
 		self.offset = np.nanmax(s)
 		
-		self.log.info(f"Done finding largest term [{self.offset:g}].")
+		self.log.debug(f"Done finding largest term [{self.offset:g}].")
 	
 	def compute_br_estimator(self, cl_tt):
 		"""
