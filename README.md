@@ -18,7 +18,7 @@ This will install the package for you. To download the WMAP DR5 data that is use
 
 This will download the WMAP data into your packages path set by your cobaya environment (this will take a while).
 
-You can test your _WMAPLike_ installation by running `python test_wmap.py`. If all went well, the environment will give a log of the components included in WMAP, their chi-square values, and any deviations from the expected value (as reported by the original WMAP v5 likelihood with the same input data). _Note that there is currently a minor mistake in the TT beam/pointsource correction term, causing the chi-square value to deviate from the expected value by ~0.04. Because this change is so tiny, it is not something to worry about right now, but the testing file will report on it._
+You can test your _WMAPLike_ installation by running `python test_wmap.py`. If all went well, the environment will give a log of the components included in WMAP, their chi-square values, and any deviations from the expected value (as reported by the original WMAP v5 likelihood with the same input data). _Note that there is currently a minor mistake in the TT beam/pointsource correction term, causing the chi-square value to deviate from the expected value by ~0.04. Because this change is so tiny, and because this component was not used for the ACT DR4 analysis either, it is not something to worry about right now, although the testing file will report on it._
 
 # Usage
 

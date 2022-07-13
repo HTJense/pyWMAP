@@ -41,7 +41,7 @@ use_highl_TE: True
 # Whether to use the high-l MASTER TB likelihood.
 use_highl_TB: False
 # Whether to include beam/point source errors.
-use_highl_TT_beam_ptsrc: True
+use_highl_TT_beam_ptsrc: False
 
 # Whether or not to use the gibbs sampling method for lowl_TT component.
 use_gibbs: True
