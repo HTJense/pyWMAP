@@ -2,16 +2,18 @@
 .. module:: wmaplike
 
 :Synopsis: A python implementation of the WMAP likelihood. See Dunkley et al. (2008) for a full description.
-:Authors: Hidde Jense.
+:Authors: Hidde Jense, Umberto Natale.
 """
 import os
 import sys
 import numpy as np
+import time
 
 from typing import Optional
-from scipy import linalg
+from scipy import linalg, special
 
 from astropy.io import fits
+from cobaya import Theory
 from cobaya.likelihoods.base_classes import InstallableLikelihood
 from cobaya.log import LoggedError
 
@@ -27,6 +29,11 @@ class WMAPLike(InstallableLikelihood):
 		
 		if not os.path.exists(self.data_folder):
 			raise LoggedError(self.log, f"No data folder found at [{self.data_folder}].")
+		
+		self.sz_file = os.path.join(self.data_folder, self.sz_filename)
+		
+		if self.use_sz:
+			self.setup_for_sz()
 		
 		self.tt_lmax = 1200
 		self.te_lmax = 800
@@ -66,6 +73,9 @@ class WMAPLike(InstallableLikelihood):
 				self.setup_for_lowl_te_ee_bb()
 		else:
 			self.te_highl_start = self.temin
+			
+			if self.te_highl_start < 24:
+				self.log.warn("Note: you have disabled the low-ell polarisation functions, but you did not include the data. If you intend to replace the low-ell polarisation data by a tau prior, you should include `temin: 24` as a setting.")
 		
 		if self.use_highl_TT or self.use_highl_TE:
 			self.use_cl.update("tt")
@@ -84,6 +94,41 @@ class WMAPLike(InstallableLikelihood):
 			self.use_cl.update("bb")
 			
 			self.setup_for_tt_te_covariance()
+	
+	def setup_for_sz(self):
+		if not os.path.exists(self.sz_file):
+			self.log.info(f"Could not find the SZ spectrum file. Will try to download it to [{self.sz_file}].")
+			
+			if not os.path.exists(os.path.dirname(self.sz_file)):
+				os.makedirs(os.path.dirname(self.sz_file))
+				self.log.debug(f"Created new directory {os.path.dirname(self.sz_file)}.")
+			
+			import requests
+			
+			url = "https://lambda.gsfc.nasa.gov/data/map/dr5/dcp/sz_spectra/wmap_sz_spectrum_61GHz_v5.txt"
+			
+			req = requests.get(url, stream = True)
+			if req.ok:
+				self.log.info("Downloading...")
+				
+				with open(self.sz_file, "wb") as fp:
+					for chunk in req.iter_content(chunk_size = 1024 * 8):
+						if chunk:
+							fp.write(chunk)
+							fp.flush()
+							os.fsync(fp.fileno())
+			else:
+				raise IOError(f"Failed to download SZ spectrum file: Error code {req.status_code}: {req.text}")
+		
+		sz_ell, sz_spec = np.loadtxt(self.sz_file, unpack = True, dtype = float)
+		sz_ell = sz_ell.astype(int)
+		
+		# Making sure it's zero-indexed.
+		self.sz_ell = np.arange(sz_ell.max() + 1)
+		self.sz_spec = np.zeros_like(self.sz_ell)
+		self.sz_spec[sz_ell] = sz_spec
+		
+		self.log.info("Loaded SZ.")
 	
 	def setup_for_tt_gibbs(self):
 		if self.lowl_max < 2:
@@ -112,10 +157,10 @@ class WMAPLike(InstallableLikelihood):
 		
 		self.log.debug(f"Reading gibbs cl data from from [{cl_filename}].")
 		
-		ls, cl_tt_fiducial = np.loadtxt(cl_filename, usecols = (0,1), unpack = True)
+		ls, cltt_fiducial = np.loadtxt(cl_filename, usecols = (0,1), unpack = True)
 		ls = ls.astype(int)
-		self.cl_tt_fiducial = np.zeros((ls.max()+1,))
-		self.cl_tt_fiducial[ls] = cl_tt_fiducial
+		self.cltt_fiducial = np.zeros((ls.max()+1,))
+		self.cltt_fiducial[ls] = cltt_fiducial
 		
 		self.log.debug(f"Done.")
 		
@@ -136,9 +181,9 @@ class WMAPLike(InstallableLikelihood):
 		self.log.debug(f"num chains  = {self.numchain}")
 		self.log.debug(f"num samples = {self.numsamples}")
 		
-		self.compute_br_estimator(self.cl_tt_fiducial)
+		self.compute_br_estimator(self.cltt_fiducial)
 		
-		self.log.info(f"Initialized!")
+		self.log.info(f"Initialized TT gibbs.")
 	
 	def setup_for_tt_beam_ptsrc(self, lmin, lmax):
 		self.bptsrc_lmin = lmin
@@ -186,6 +231,8 @@ class WMAPLike(InstallableLikelihood):
 			l = l.astype(int)
 			
 			self.ptsrc_mode[l] = x
+		
+		self.log.info("Initialized TT beam/ptsrc correction.")
 	
 	def setup_for_tt_exact(self):
 		raise NotImplementedError("TT Pixel likelihood is not yet implemented. Set .use_gibbs = True. or disable the lowl TT likelihood.")
@@ -272,6 +319,8 @@ class WMAPLike(InstallableLikelihood):
 		
 		self.r_off_tete[i,j] = r_off_tete
 		self.r_off_tete[j,i] = r_off_tete
+		
+		self.log.info("Initialized high-l TT/TE.")
 	
 	def load_fits_archive(self, filename):
 		fp = fits.open(os.path.normpath(os.path.join(self.data_folder, self.TEEEBB_maskfile)))
@@ -362,38 +411,42 @@ class WMAPLike(InstallableLikelihood):
 		self.NinvY = np.zeros((ninvy.shape[1], ninvy.shape[2]), dtype = complex)
 		self.NinvY[:,:] = ninvy[0,:,:] + 1.j * ninvy[1,:,:]
 		tmp.close()
+		
+		self.log.info("Initialized low-l TE/EE/BB.")
 	
 	def setup_for_lowl_te_tb_ee_bb_eb(self):
 		""" Initialize the TE/TB/EE/BB/EB low-l likelihood """
 		raise NotImplementedError("TE/TB/EE/BB/EB low-l likelihood is not yet implemented. Set .use_lowl_TBEB = False. or .use_lowl_pol = False. to avoid this error.")
 	
-	def compute_largest_term(self, cl_tt):
-		self.log.debug("First evaluation: Calculating largest term...")
+	def compute_largest_term(self, cltt):
+		self.log.info("First evaluation: Calculating largest term...")
 		
 		ls = np.arange(self.lmin, self.lmax+1)
 		self.sigmas = self.sigmas[ls,...]
 		self.logsigma = np.log(self.sigmas)
 		
-		x = self.sigmas / cl_tt[ls, np.newaxis, np.newaxis]
+		x = self.sigmas / cltt[ls, np.newaxis, np.newaxis]
 		s = np.nansum(0.5 * (2.0 * ls[..., np.newaxis, np.newaxis] + 1) * (np.log(x) - x) - self.logsigma, axis = 0)
 		
 		self.offset = np.nanmax(s)
 		
-		self.log.debug(f"Done finding largest term [{self.offset:g}].")
+		self.log.info(f"Done finding largest term [{self.offset:g}].")
 	
-	def compute_br_estimator(self, cl_tt):
+	def compute_br_estimator(self, cltt):
 		"""
 		  Compute the Blackwell-Rao estimator.
 		"""
 		
 		if self.first_eval:
-			self.compute_largest_term(cl_tt)
+			self.compute_largest_term(cltt)
 			self.first_eval = False
 		
 		logl = 0.0
 		ls = np.arange(self.lmin, self.lmax+1)
 		
-		x = self.sigmas / cl_tt[ls, np.newaxis, np.newaxis]
+		start = time.time()
+		
+		x = self.sigmas / cltt[ls, np.newaxis, np.newaxis]
 		s = np.nansum(0.5 * (2.0 * ls[..., np.newaxis, np.newaxis] + 1) * (np.log(x) - x) - self.logsigma, axis = 0)
 		logl = np.log(np.nansum(np.exp(s - self.offset)))
 		
@@ -412,13 +465,13 @@ class WMAPLike(InstallableLikelihood):
 		
 		logl = 0.0
 		if self.use_gibbs:
-			cl_tt_dummy = np.zeros( (self.gibbs_ell_max+1,) )
+			cltt_dummy = np.zeros( (self.gibbs_ell_max+1,) )
 			if self.gibbs_ell_max > self.lowl_max:
-				cl_tt_dummy[self.lowl_max+1:self.gibbs_ell_max] = self.cl_tt_fiducial[self.lowl_max+1:self.gibbs_ell_max]
+				cltt_dummy[self.lowl_max+1:self.gibbs_ell_max] = self.cltt_fiducial[self.lowl_max+1:self.gibbs_ell_max]
 			
-			cl_tt_dummy[self.ttmin:self.lowl_max+1] = cltt[self.ttmin:self.lowl_max+1]
+			cltt_dummy[self.ttmin:self.lowl_max+1] = cltt[self.ttmin:self.lowl_max+1]
 			
-			logl = self.compute_br_estimator(cl_tt_dummy)
+			logl = self.compute_br_estimator(cltt_dummy)
 		else:
 			raise NotImplementedError("Low l TT pixel likelihood not implemented. Set .use_gibbs = True. or disable low l TT likelihood.")
 		
@@ -623,6 +676,9 @@ class WMAPLike(InstallableLikelihood):
 	def loglike(self, Cls, **params):
 		components = { }
 		
+		if self.use_sz:
+			Cls["tt"] = Cls.get("tt") + params["A_sz"] * self.sz_spec[ Cls["ell"] ]
+		
 		if self.use_lowl_TT:
 			components["lowl_TT_gibbs"] = self.loglike_lowl_TT(Cls.get("tt"))
 		
@@ -667,6 +723,8 @@ class WMAPLike(InstallableLikelihood):
 		for c in components:
 			state["derived"]["chi2_wmap_" + c] = -2.0 * components[c]
 			state["derived"]["logp_" + c] = components[c]
+			
+			print(c, -components[c])
 		
 		chi2 = -2.0 * logp
 		
@@ -677,3 +735,71 @@ class WMAPLike(InstallableLikelihood):
 			self.log.debug(f"\t{c}: {lp:g}, Chisqr = {chi2:.2f}")
 		
 		return True
+	
+	def logp(self, **params):
+		Cls = self.provider.get_Cl(ell_factor = True)
+		loglike, _ = self.loglike(Cls, **params)
+		
+		return loglike
+
+class WMAPBestFitv5(Theory):
+	def initialize(self):
+		data_file_path = os.path.normpath( getattr(self, "path", None) or os.path.join(self.packages_path, "data") )
+		self.data_folder = os.path.join(data_file_path, self.data_folder)
+		
+		if not os.path.exists(self.data_folder):
+			raise LoggedError(self.log, f"No data folder found at [{self.data_folder}].")
+		
+		self.cl_file = os.path.join(self.data_folder, self.cl_filename)
+		
+		cldata = np.loadtxt(self.cl_file)
+		
+		self.cls_dict = { k : np.zeros((cldata.shape[0]+2,)) for k in [ "ell", "tt", "te", "ee", "tb", "eb", "bb" ] }
+		
+		ls = cldata[:,0].astype(int)
+		self.cls_dict["ell"] = np.arange(self.cls_dict["ell"].shape[0]).astype(int)
+		self.cls_dict["tt"][ls] = cldata[:,1]
+		self.cls_dict["ee"][ls] = cldata[:,2]
+		self.cls_dict["bb"][ls] = cldata[:,3]
+		self.cls_dict["te"][ls] = cldata[:,4]
+		
+		self.log.info("Initialized WMAP best fit v5 model.")
+	
+	def get_can_provide(self):
+		return [ "Cl" ]
+	
+	def get_Cl(self, ell_factor = True, units = "1"):
+		ls_fac = np.ones_like(self.cls_dict["ell"])
+		
+		if not ell_factor:
+			ls_fac = (2.0 * np.pi) / (self.cls_dict["ell"] * (self.cls_dict["ell"] + 1.0))
+		
+		cmb_fac = self._cmb_unit_factor(units, 2.726)
+		
+		cls = {
+			k : self.current_state["cl_amp"] * self.cls_dict[k] * ls_fac * cmb_fac ** 2.0 for k in self.cls_dict
+		}
+		
+		cls["ell"] = self.cls_dict["ell"]
+		
+		return cls
+	
+	def _cmb_unit_factor(self, units, T_cmb):
+		units_factors = {
+			"1": 1,
+			"muK2": T_cmb * 1.0e6,
+			"K2": T_cmb,
+			"FIRASmuK2": 2.7255e6,
+			"FIRASK2": 2.7255
+		}
+		
+		try:
+			return units_factors[units]
+		except KeyError:
+			raise LoggedError(self.log, "Units '%s' not recognized. Use one of %s.", units, list(units_factors))
+	
+	def calculate(self, state, want_derived = True, **params):
+		state["cl_amp"] = params["cl_amp"]
+	
+	def get_can_support_params(self):
+		return [ "cl_amp" ]

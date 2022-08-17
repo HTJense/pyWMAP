@@ -15,10 +15,13 @@ like = WMAPLike({
 	"use_highl_TE" : True,
 	"use_highl_TB" : False,
 	"use_lowl_pol" : False,
-	"use_lowl_TBEB" : False
+	"use_lowl_TBEB" : False,
+	"use_highl_TT_beam_ptsrc" : False,
+	"use_sz" : False,
+	"debug" : True
 })
 
-bestfit = np.loadtxt(os.path.normpath(os.path.join(packages_path, like.data_folder, "data/test_cls_v5.dat")))
+bestfit = np.loadtxt(os.path.normpath(os.path.join(packages_path, like.data_folder, "test_cls_v5.dat")))
 
 cls_dict = { k : np.zeros((bestfit.shape[0]+2,)) for k in [ "tt", "te", "ee", "tb", "eb", "bb" ] }
 
@@ -41,6 +44,13 @@ chisqr_expected = {
 	"TEEEBB_det" : 692.874562,
 	"beamptsrc_TT" : 0.735565
 }
+
+if not like.use_lowl_pol:
+	chisqr_expected["MASTER_TETE_chi2"] = 831.787122
+	chisqr_expected["MASTER_TETE_det"] = 3605.526233
+	
+	chisqr_expected["MASTER_TBTB_chi2"] = 775.110063
+	chisqr_expected["MASTER_TBTB_det"] = 3610.385517
 
 #chisqr_tot_expected = 7557.965820
 logp_tot_avail = sum([ components[c] if c in chisqr_expected else 0.0 for c in components ])

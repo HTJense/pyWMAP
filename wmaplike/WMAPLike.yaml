@@ -15,6 +15,8 @@ tb_filename: "highl/wmap_likelihood_inputs_tb.p5_final.dat"
 ttoff_filename: "highl/wmap_likelihood_inputs_tt_offdiag.p4v4.wmap9.kq85.cinv_v3.dat"
 teoff_filename: "highl/wmap_likelihood_inputs_te_offdiag.p5_final.dat"
 
+sz_filename: "sz_spectra/wmap_sz_spectrum_61GHz_v5.txt"
+
 ifn_ptsrc_mode: "highl/wmap_likelihood_inputs_ptsrc.p5_final.dat"
 ifn_beam_modes: "highl/top_ten_modes.beam_covariance_VW_combined.dat"
 ifn_fiducial_cltt: "test_cls_v4.dat"
@@ -45,6 +47,14 @@ use_highl_TT_beam_ptsrc: False
 
 # Whether or not to use the gibbs sampling method for lowl_TT component.
 use_gibbs: True
+
+# Whether or not to use the SZ template
+use_sz: True
+
+params:
+  A_sz:
+    value: 0.0
+    latex: A_\mathrm{SZ}
 
 # Settings for the gibbs sampling component.
 gibbs_first_iteration: 10

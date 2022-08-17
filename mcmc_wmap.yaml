@@ -8,6 +8,8 @@ sampler:
 
 likelihood:
   wmaplike.WMAPLike:
+    # Since we use a prior on tau, we do not need the low-l TE data.
+    temin: 24
 
 params:
   ombh2:
