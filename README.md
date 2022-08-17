@@ -45,3 +45,7 @@ WMAP comes with the following settings. They are all copied, verbatim, from the 
 - The `ttmin`, `ttmax`, `temin` and `temax` parameters refer to the range of l-modes that should be considered by the likelihood. Note that the `temin` and `temax` parameters are also used by the B-modes.
 
 The remainder of the settings mostly refer to names of files. You can modify these if you wish.
+
+## The best-fitting v5 Theory
+
+Packaged with the likelihood is the `WMAPBestFitv5` theory code that simply returns the best-fitting power spectrum that was included in the `wmap_v5` likelihood. It has one parameter, `cl_amp`, that simply scales the entire power spectrum up or down. If you want to include it, simply replace your `camb` or `classy` theory code by `WMAPBestFitv5`.
