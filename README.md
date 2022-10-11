@@ -14,9 +14,9 @@ You can install the likelihood by running
 
 ``pip install -e <path/to/download>``
 
-This will install the package for you. To download the WMAP v5 data that is used for the likelihood, you need to install the likelihood with cobaya. From the directory `<path/to/download>`, run:
+This will install the package for you. To download the WMAP v5 data that is used for the likelihood, you need to install the likelihood with cobaya. From the directory `<path/to/download>` (it should contain the `eval_wmap.yaml` parameter file), run:
 
-``cobaya-install wmaplike.WMAPLike -p <cobaya/packages/path>``
+``cobaya-install eval_wmap.yaml -p <cobaya/packages/path>``
 
 This will download the WMAP data into your packages path set by your cobaya environment (this will take a while).
 
