@@ -28,7 +28,6 @@ temin: 2
 temax: 800
 
 lowl_max: 32
-gibbs_ell_max: 100
 
 # Whether to use the TT gibbs/pixel likelihood.
 use_lowl_TT: True
