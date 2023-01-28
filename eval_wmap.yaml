@@ -11,10 +11,10 @@ likelihood:
     stop_at_error: True
 
 params:
-  ombh2: 2.27e-2
-  omch2: 0.108
-  H0: 72.4
-  tau: 0.089
-  ns: 0.961
-  As: 2.41e-9
-  pivot_scalar: 0.02
+  ombh2: 2.256e-2
+  omch2: 0.1142
+  H0: 69.7
+  tau: 0.0851
+  ns: 0.9710
+  As: 2.40e-9
+  pivot_scalar: 0.002

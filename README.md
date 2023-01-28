@@ -24,7 +24,7 @@ You can test your _WMAPLike_ installation by running `python test_wmap.py`. If a
 
 # Usage
 
-To use the likelihood, two sample .yaml file are included. The file `eval_wmap.yaml` will evaluate WMAP at the best-fitting cosmology as reported in table 2 of [Hinshaw et al. 2012](https://arxiv.org/abs/1212.5226). It should give a chi-square value of 5923.52.
+To use the likelihood, two sample .yaml file are included. The file `eval_wmap.yaml` will evaluate WMAP at the best-fitting cosmology as reported in table 2 of [Hinshaw et al. 2012](https://arxiv.org/abs/1212.5226). It should give a chi-square value of 5625.25. (Should this number not match, you can run the file `test_wmap.py`, which will make a similar evaluation and compare the values with pre-computed values from the original Fortran likelihood and might give a bit more insight as to where it went wrong.)
 
 The file `mcmc_wmap.yaml` will run a simple MCMC chain with the likelihood. It included a prior on _tau_, since there is no low-l polarization component to constrain the tau/As degeneracy.
 
