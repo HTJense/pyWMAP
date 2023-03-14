@@ -720,11 +720,10 @@ class WMAPLike(InstallableLikelihood):
 		logp, components = self.loglike(Cls, **params)
 		
 		state["logp"] = logp
+		if state["derived"] is None: state["derived"] = {}
 		for c in components:
 			state["derived"]["chi2_wmap_" + c] = -2.0 * components[c]
 			state["derived"]["logp_" + c] = components[c]
-			
-			print(c, -components[c])
 		
 		chi2 = -2.0 * logp
 		
