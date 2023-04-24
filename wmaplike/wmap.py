@@ -677,7 +677,10 @@ class WMAPLike(InstallableLikelihood):
 		components = { }
 		
 		if self.use_sz:
-			Cls["tt"] = Cls.get("tt") + params["A_sz"] * self.sz_spec[ Cls["ell"] ]
+			sz_spec = np.zeros((Cls.get("ell").max()+1,))
+			lmax = min(len(sz_spec), len(self.sz_spec))
+			sz_spec[:lmax] = self.sz_spec[:lmax]
+			Cls["tt"] = Cls.get("tt") + params["A_sz"] * sz_spec[ Cls.get("ell") ]
 		
 		if self.use_lowl_TT:
 			components["lowl_TT_gibbs"] = self.loglike_lowl_TT(Cls.get("tt"))
