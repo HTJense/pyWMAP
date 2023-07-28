@@ -8,7 +8,7 @@ This adaptation can be cross-checked with the original code setting to False the
 
 Clone the git with
 
-``git clone https://github.com/HTJense/wmaplike <path/to/download>``
+``git clone https://github.com/HTJense/pyWMAP <path/to/download>``
 
 You can install the likelihood by running
 
