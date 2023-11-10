@@ -1,1 +1,1 @@
-from .wmap import WMAPLike, WMAPBestFitv5
+from .wmap import WMAPLike, WMAPBestFitv5  # noqa F401
