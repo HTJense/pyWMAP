@@ -12,19 +12,25 @@ Clone the git with
 
 You can install the likelihood by running
 
-``pip install -e <path/to/download>``
+``pip install [-e] <path/to/download>``
 
-This will install the package for you. To download the WMAP v5 data that is used for the likelihood, you need to install the likelihood with cobaya. From the directory `<path/to/download>` (it should contain the `eval_wmap.yaml` parameter file), run:
+where the `-e` flag is an option you can use if you intend to modify the code yourself. This will install the package for you.
 
-``cobaya-install eval_wmap.yaml -p <cobaya/packages/path>``
+To download the WMAP v5 data that is used for the likelihood, you need to install the likelihood with cobaya, as:
+
+``cobaya-install wmaplike.WMAPLike``
 
 This will download the WMAP data into your packages path set by your cobaya environment (this will take a while).
 
-You can test your _WMAPLike_ installation by running `python test_wmap.py`. If all went well, the environment will give a log of the components included in WMAP, their chi-square values, and any deviations from the expected value (as reported by the original WMAP v5 likelihood with the same input data). _Note that there is currently a minor mistake in the TT beam/pointsource correction term, causing the chi-square value to deviate from the expected value by ~0.04. Because this change is so tiny, and because this component should not be used, it is not something relevant, although the testing file will report on it._
+You can test your installation afterwards with
+
+``pytest -v``
+
+If all went well, you should see a bunch of "passed" tests in your console log.
 
 # Usage
 
-To use the likelihood, two sample .yaml file are included. The file `eval_wmap.yaml` will evaluate WMAP at the best-fitting cosmology as reported in table 2 of [Hinshaw et al. 2012](https://arxiv.org/abs/1212.5226). It should give a chi-square value of 5625.25. (Should this number not match, you can run the file `test_wmap.py`, which will make a similar evaluation and compare the values with pre-computed values from the original Fortran likelihood and might give a bit more insight as to where it went wrong.)
+To use the likelihood, two sample .yaml file are included. The file `eval_wmap.yaml` will evaluate WMAP at the best-fitting cosmology as reported in table 2 of [Hinshaw et al. 2012](https://arxiv.org/abs/1212.5226). It should give a chi-square value of 5625.25.
 
 The file `mcmc_wmap.yaml` will run a simple MCMC chain with the likelihood. It included a prior on _tau_, since there is no low-l polarization component to constrain the tau/As degeneracy.
 
