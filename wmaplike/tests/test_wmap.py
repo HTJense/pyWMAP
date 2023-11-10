@@ -19,7 +19,6 @@ info = {
             "use_lowl_TBEB": False,
             "use_highl_TT_beam_ptsrc": False,
             "use_sz": False,
-            "debug": True
         }
     },
     "sampler": {"evaluate": None},
