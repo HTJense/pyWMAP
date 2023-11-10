@@ -19,8 +19,7 @@ from cobaya.log import LoggedError
 
 class WMAPLike(InstallableLikelihood):
     install_options = {
-        "download_url": "https://lambda.gsfc.nasa.gov/data/map/dr5/dcp/\
-                         likelihood/wmap_likelihood_full_v5.tar.gz",
+        "download_url": "https://lambda.gsfc.nasa.gov/data/map/dr5/dcp/likelihood/wmap_likelihood_full_v5.tar.gz",  # noqa E501
         "data_path": "WMAP/dr5"
     }
 
@@ -115,8 +114,7 @@ class WMAPLike(InstallableLikelihood):
 
             import requests
 
-            url = "https://lambda.gsfc.nasa.gov/data/map/dr5/dcp/sz_spectra/\
-                   wmap_sz_spectrum_61GHz_v5.txt"
+            url = "https://lambda.gsfc.nasa.gov/data/map/dr5/dcp/sz_spectra/wmap_sz_spectrum_61GHz_v5.txt"  # noqa E501
 
             req = requests.get(url, stream=True)
             if req.ok:
